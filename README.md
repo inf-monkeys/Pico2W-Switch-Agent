@@ -1,21 +1,17 @@
-# Pico 2 W Jev controller firmware
+# Pico 2 W Switch Controller Firmware
 
-This firmware makes a Pico 2 W enumerate as one wired Nintendo Switch Pro
-Controller over USB. It starts a private Wi-Fi access point so the Mac can
-send short actions without a second Bluetooth controller or a USB-UART
-adapter.
+This standalone firmware makes a Raspberry Pi Pico 2 W enumerate as a wired
+Nintendo Switch Pro Controller over USB. It runs a private Wi-Fi access point
+and accepts short controller actions over UDP, so a host computer can drive the
+controller without Bluetooth or a USB-UART adapter.
 
-## Current hardware path
+## Hardware path
 
 ```text
-Mac Jev/Luffy -- Wi-Fi --> Pico 2 W -- USB device --> Switch dock USB host
+Host computer -- Wi-Fi --> Pico 2 W -- USB device --> Switch dock USB host
 ```
 
-The Pico access point is `Jev-Pico` with password `jev-pico-1234`. The UDP
-listener is `192.168.4.1:8765`.
-
-The action payload is JSON. Luffy sends a complete controller state. The
-legacy single-button field is still accepted:
+The UDP listener is `192.168.4.1:8765`. The action payload is JSON:
 
 ```json
 {
@@ -25,7 +21,7 @@ legacy single-button field is still accepted:
     "right_stick": {"x": 0.0, "y": -0.25},
     "duration_ms": 120
   },
-  "metadata": {"source": "agent"}
+  "metadata": {"source": "host"}
 }
 ```
 
@@ -39,7 +35,7 @@ The Switch Pro HID report also has motion and rumble fields, but this Pico 2 W
 build has no IMU and does not implement rumble feedback. Motion remains neutral
 and rumble is ignored until additional hardware and protocol support are added.
 
-For a direct smoke test after connecting the Mac to the Pico hotspot:
+For a direct smoke test after connecting the host to the Pico access point:
 
 ```sh
 printf '%s' '{"action":{"buttons":["A","ZR"],"left_stick":{"x":0.5,"y":0},"duration_ms":120}}' \
@@ -48,11 +44,6 @@ printf '%s' '{"action":{"buttons":["A","ZR"],"left_stick":{"x":0.5,"y":0},"durat
 
 The binary is built for `PICO_BOARD=pico2_w` with the `WIFI` input backend.
 
-`switch-pico` and the Switch Pro descriptor implementation are retained as
-the upstream hardware layer; the Wi-Fi action backend is the project-specific
-input layer.
-
-
 ## Upstream attribution
 
 The USB Switch Pro controller emulation layer is based on the open-source
@@ -60,6 +51,5 @@ The USB Switch Pro controller emulation layer is based on the open-source
 Yakimowich-Payne. That upstream layer remains covered by its MIT license in
 [`LICENSE`](LICENSE).
 
-The project-specific Pico 2 W Wi-Fi action backend, DHCP/access-point setup,
-UDP JSON protocol, and Luffy/Jev integration in this repository are also
-released under the MIT license.
+The Wi-Fi action backend, DHCP/access-point setup, UDP JSON protocol, and other
+original additions in this repository are also released under the MIT license.
